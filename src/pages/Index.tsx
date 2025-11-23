@@ -8,9 +8,27 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Sparkles, Users, BookOpen, Zap, Globe, Palette, Clapperboard, Play } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useProductionSetup } from "@/hooks/useProductionSetup";
+import { toast } from "sonner";
 
 const Index = () => {
   const navigate = useNavigate();
+  const { setupSayWallahi } = useProductionSetup();
+  const [isSettingUp, setIsSettingUp] = useState(false);
+
+  const handleSetupProduction = async () => {
+    setIsSettingUp(true);
+    try {
+      await setupSayWallahi();
+      toast.success("Say Wallahi: Minneapolis production created successfully!");
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Setup error:", error);
+      toast.error("Failed to set up production");
+    } finally {
+      setIsSettingUp(false);
+    }
+  };
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
@@ -59,9 +77,18 @@ const Index = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button 
+                size="lg" 
+                onClick={handleSetupProduction}
+                disabled={isSettingUp}
+                className="bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity text-lg px-8"
+              >
+                <Sparkles className="mr-2 h-5 w-5" />
+                {isSettingUp ? "Setting Up..." : "Setup Say Wallahi"}
+              </Button>
               {isAuthenticated ? (
                 <Link to="/dashboard">
-                  <Button size="lg" className="bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity text-lg px-8">
+                  <Button size="lg" variant="outline" className="border-primary/50 hover:bg-primary/10 text-lg px-8">
                     Go to Dashboard
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
@@ -69,7 +96,7 @@ const Index = () => {
               ) : (
                 <>
                   <Link to="/auth">
-                    <Button size="lg" className="bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity text-lg px-8">
+                    <Button size="lg" variant="outline" className="border-primary/50 hover:bg-primary/10 text-lg px-8">
                       Get Started Free
                       <ArrowRight className="ml-2 h-5 w-5" />
                     </Button>
