@@ -44,3 +44,6 @@ verify_jwt = false
 
 [functions.bot-creator]
 verify_jwt = false
+
+[functions.bot-orchestrator]
+verify_jwt = false
