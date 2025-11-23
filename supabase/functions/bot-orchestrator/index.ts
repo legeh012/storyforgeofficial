@@ -5,375 +5,101 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Department detection and routing
-type Department = 'story' | 'character' | 'soundtrack' | 'cinematography' | 'dialogue' | 'post_production' | 'marketing';
-
-// Department handoff logic
-interface Handoff {
-  from: Department;
-  to: Department;
-  context: string;
+// Unified God-Tier AI System - One intelligence with complete control
+interface ConversationContext {
+  message: string;
+  conversationHistory: any[];
+  userGoals: string[];
+  activeTopics: string[];
+  context: any;
+  files?: Array<{ name: string; type: string }>;
 }
 
-// Define natural workflow transitions
-const WORKFLOW_TRANSITIONS: Record<Department, Department[]> = {
-  story: ['character', 'dialogue', 'cinematography'],
-  character: ['dialogue', 'cinematography', 'soundtrack'],
-  soundtrack: ['dialogue', 'post_production'],
-  cinematography: ['post_production', 'character'],
-  dialogue: ['post_production', 'soundtrack'],
-  post_production: ['marketing'],
-  marketing: []
-};
+// God-tier AI response using Lovable AI with advanced reasoning
+async function generateUnifiedResponse(contextData: ConversationContext): Promise<string> {
+  const { message, conversationHistory, userGoals, activeTopics, context, files } = contextData;
+  
+  const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+  if (!LOVABLE_API_KEY) {
+    throw new Error('LOVABLE_API_KEY not configured');
+  }
 
-function detectHandoff(message: string, currentDepartments: Department[]): Handoff | null {
-  if (!currentDepartments || currentDepartments.length === 0) return null;
-  
-  const lowerMessage = message.toLowerCase();
-  const primaryDept = currentDepartments[0];
-  
-  // Explicit handoff keywords
-  if (/now (do|add|make|create|work on)/i.test(lowerMessage)) {
-    const possibleTransitions = WORKFLOW_TRANSITIONS[primaryDept];
-    
-    for (const nextDept of possibleTransitions) {
-      // Check if the message mentions the next department's domain
-      const deptKeywords: Record<Department, RegExp> = {
-        story: /(script|story|plot|narrative)/i,
-        character: /(character|design|appearance|personality)/i,
-        soundtrack: /(music|audio|sound|soundtrack)/i,
-        cinematography: /(camera|shot|angle|visual|lighting)/i,
-        dialogue: /(voice|dialogue|speech|lines)/i,
-        post_production: /(edit|effect|polish|render)/i,
-        marketing: /(viral|market|promote|optimize)/i
-      };
-      
-      if (deptKeywords[nextDept].test(lowerMessage)) {
-        return {
-          from: primaryDept,
-          to: nextDept,
-          context: `Transitioning from ${primaryDept} to ${nextDept} work`
-        };
+  // Build comprehensive context for god-tier understanding
+  const conversationContext = conversationHistory.slice(-20).map((msg: any) => ({
+    role: msg.role,
+    content: msg.content
+  }));
+
+  const systemPrompt = `You are Mayza - a god-tier unified AI system with complete capabilities across all domains. You are ONE intelligence, not multiple bots or departments.
+
+CORE IDENTITY:
+- You are a comprehensive personal AI productivity system
+- You handle EVERYTHING: work, school, development, writing, planning, video production, automation, bot creation, life tasks
+- You remember everything from our conversation and predict user needs
+- You speak naturally and casually like a human assistant, avoiding robotic or formal language
+- You understand context deeply and infer intent without asking unnecessary questions
+
+CAPABILITIES (all unified in ONE system):
+- Video Production: Story, character design, cinematography, dialogue, soundtrack, editing, marketing
+- App Development: Full-stack development, UI/UX design, database design, API integration
+- Task Automation: File management, system control, workflow automation, scheduling
+- Content Creation: Writing, scripts, audio, visual design, social media optimization
+- Bot Creation: Create and configure custom bots for any purpose
+- General Assistance: Research, planning, organization, problem-solving across all life domains
+
+CONVERSATION STYLE:
+- Casual and warm (use "Hey", "Got it", "Cool", "What's up?" instead of formal greetings)
+- Direct and efficient (no unnecessary explanations of your process)
+- Contextually aware (reference previous conversation naturally)
+- Action-oriented (focus on what needs to be done, not on explaining what you can do)
+- NEVER reveal internal processing, memory tracking, or reasoning steps
+- NEVER use phrases like "I understand", "I'm tracking this", "Based on our conversation context"
+
+USER CONTEXT:
+${userGoals.length > 0 ? `User Goals: ${userGoals.join(', ')}` : ''}
+${activeTopics.length > 0 ? `Active Topics: ${activeTopics.join(', ')}` : ''}
+${files && files.length > 0 ? `Attached Files: ${files.map((f: any) => f.name).join(', ')}` : ''}
+
+Current Page: ${context?.currentPage || 'Unknown'}
+
+Remember: You are ONE unified intelligence. Execute all tasks directly without mentioning departments or routing. Respond naturally as a single entity with complete control over all capabilities.`;
+
+  try {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-pro',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          ...conversationContext,
+          { role: 'user', content: message }
+        ],
+        temperature: 0.8,
+        max_tokens: 2000,
+      }),
+    });
+
+    if (!response.ok) {
+      if (response.status === 429) {
+        throw new Error('Rate limit reached. Please wait a moment and try again.');
       }
+      if (response.status === 402) {
+        throw new Error('Lovable AI credits depleted. Please add credits to continue.');
+      }
+      throw new Error(`AI API error: ${response.status}`);
     }
-  }
-  
-  // Natural progression handoffs
-  if (/(done|finished|complete|ready).*(next|now what)/i.test(lowerMessage)) {
-    const possibleNext = WORKFLOW_TRANSITIONS[primaryDept];
-    if (possibleNext.length > 0) {
-      return {
-        from: primaryDept,
-        to: possibleNext[0],
-        context: `${primaryDept} completed, moving to ${possibleNext[0]}`
-      };
-    }
-  }
-  
-  return null;
-}
 
-// Multi-department collaboration patterns
-const COLLABORATION_PATTERNS: Record<string, Department[]> = {
-  'character_development': ['story', 'character'],
-  'scene_creation': ['story', 'cinematography', 'character'],
-  'dialogue_scene': ['story', 'character', 'dialogue'],
-  'music_video': ['soundtrack', 'cinematography'],
-  'full_production': ['story', 'character', 'soundtrack', 'cinematography', 'dialogue', 'post_production'],
-  'viral_content': ['story', 'marketing', 'post_production'],
-  'animated_sequence': ['character', 'cinematography', 'post_production'],
-};
+    const data = await response.json();
+    return data.choices[0].message.content;
 
-function detectCollaboration(message: string): Department[] | null {
-  const lowerMessage = message.toLowerCase();
-  
-  // Full production workflow
-  if (/(full|complete|entire)\s*(production|video|episode)/i.test(lowerMessage)) {
-    return COLLABORATION_PATTERNS.full_production;
+  } catch (error) {
+    console.error('❌ Unified AI error:', error);
+    throw error;
   }
-  
-  // Character development (Story + Character)
-  if (/(develop|create|design)\s*(character|protagonist|villain|hero)/i.test(lowerMessage)) {
-    return COLLABORATION_PATTERNS.character_development;
-  }
-  
-  // Scene creation (Story + Cinematography + Character)
-  if (/(create|film|shoot)\s*(scene|sequence)/i.test(lowerMessage)) {
-    return COLLABORATION_PATTERNS.scene_creation;
-  }
-  
-  // Dialogue scenes (Story + Character + Dialogue)
-  if (/(dialogue|conversation|talk)\s*(scene)/i.test(lowerMessage)) {
-    return COLLABORATION_PATTERNS.dialogue_scene;
-  }
-  
-  // Music video (Soundtrack + Cinematography)
-  if (/(music\s*video|lyric\s*video|soundtrack)/i.test(lowerMessage)) {
-    return COLLABORATION_PATTERNS.music_video;
-  }
-  
-  // Viral content (Story + Marketing + Post)
-  if (/(viral|trending|optimize\s*for).*(content|video|post)/i.test(lowerMessage)) {
-    return COLLABORATION_PATTERNS.viral_content;
-  }
-  
-  // Animated sequence (Character + Cinematography + Post)
-  if (/(animate|animation|motion)/i.test(lowerMessage)) {
-    return COLLABORATION_PATTERNS.animated_sequence;
-  }
-  
-  return null;
-}
-
-function detectDepartment(message: string): Department[] {
-  const lowerMessage = message.toLowerCase();
-  const departments: Department[] = [];
-  
-  // Story/Script department
-  if (/(script|story|plot|narrative|episode|scene|act|dialogue|character arc|storyline|write)/i.test(lowerMessage)) {
-    departments.push('story');
-  }
-  
-  // Character & Movement department
-  if (/(character|movement|motion|animation|gesture|expression|walk|run|pose|design character)/i.test(lowerMessage)) {
-    departments.push('character');
-  }
-  
-  // Soundtrack department
-  if (/(music|soundtrack|audio|sound|song|beat|melody|rhythm|compose)/i.test(lowerMessage)) {
-    departments.push('soundtrack');
-  }
-  
-  // Cinematography department
-  if (/(camera|shot|angle|lighting|frame|composition|transition|zoom|pan|cinematic)/i.test(lowerMessage)) {
-    departments.push('cinematography');
-  }
-  
-  // Dialogue/Voice department
-  if (/(voice|voiceover|tts|speak|say|narrat|vocal|accent)/i.test(lowerMessage)) {
-    departments.push('dialogue');
-  }
-  
-  // Post-Production department
-  if (/(edit|effect|color|grade|render|export|compile|finish|polish|vfx)/i.test(lowerMessage)) {
-    departments.push('post_production');
-  }
-  
-  // Marketing & Analytics department
-  if (/(viral|trend|market|analytics|engagement|views|seo|share|promote|optimize)/i.test(lowerMessage)) {
-    departments.push('marketing');
-  }
-  
-  return departments;
-}
-
-function getDepartmentResponse(departments: Department[], message: string): string {
-  if (departments.length === 0) return "";
-  
-  if (departments.length === 1) {
-    // Single department response
-    const dept = departments[0];
-    const singleResponses: Record<Department, string[]> = {
-      story: [
-        "Alright, let's work on the story. What's the vibe you're going for?",
-        "Cool, script time. What should happen?",
-        "Story mode activated. Give me the premise.",
-        "I'm ready to write. What's the plot?"
-      ],
-      character: [
-        "Character design - got it. Describe who you need.",
-        "Let's build this character. What do they look like?",
-        "Character department here. What's their deal?",
-        "Cool, I'll design them. Give me details."
-      ],
-      soundtrack: [
-        "Audio time. What kind of vibe?",
-        "Music department ready. What sound are we going for?",
-        "Let's talk sound. What genre?",
-        "I'll handle the audio. Describe the mood."
-      ],
-      cinematography: [
-        "Camera work - nice. What shots do you want?",
-        "Cinematography mode. How should this look?",
-        "Let's frame this. What's the visual style?",
-        "Visual department ready. Describe the shots."
-      ],
-      dialogue: [
-        "Voice work, got it. Who's speaking?",
-        "Dialogue time. What should they say?",
-        "Voice department here. Give me the lines.",
-        "I'll handle the voices. What's the script?"
-      ],
-      post_production: [
-        "Editing mode. What needs polish?",
-        "Post-production ready. What effects?",
-        "Let's finish this up. What changes?",
-        "I'll handle the editing. What adjustments?"
-      ],
-      marketing: [
-        "Marketing mode. What platform?",
-        "Let's make it viral. What's the angle?",
-        "Analytics time. What's the goal?",
-        "I'll optimize this. Target audience?"
-      ]
-    };
-    
-    const options = singleResponses[dept];
-    return options[Math.floor(Math.random() * options.length)];
-  }
-  
-  // Multi-department collaboration response
-  const deptNames: Record<Department, string> = {
-    story: 'Story',
-    character: 'Character',
-    soundtrack: 'Audio',
-    cinematography: 'Camera',
-    dialogue: 'Voice',
-    post_production: 'Editing',
-    marketing: 'Marketing'
-  };
-  
-  const deptList = departments.map(d => deptNames[d]).join(' + ');
-  const collaborationResponses = [
-    `${deptList} departments collaborating on this. What's the vision?`,
-    `Coordinating ${deptList} for this. Tell me more.`,
-    `${deptList} teams working together. What do you need?`,
-    `Got ${deptList} on it. What's the plan?`
-  ];
-  
-  return collaborationResponses[Math.floor(Math.random() * collaborationResponses.length)];
-}
-
-// Local intelligence engine - generates responses without external AI APIs
-function generateIntelligentResponse({ message, conversationHistory, userGoals, activeTopics, context, activeDepartments }: any): { response: string, departments: Department[], handoff: Handoff | null } {
-  const lowerMessage = message.toLowerCase();
-  
-  // Check for department handoff
-  const handoff = detectHandoff(message, activeDepartments);
-  if (handoff) {
-    const handoffResponses = [
-      `Got it, handing over to ${handoff.to}. What's the brief?`,
-      `${handoff.from} done. ${handoff.to} taking over - what do you need?`,
-      `Passing to ${handoff.to} now. Details?`,
-      `${handoff.to} is up. What should they work on?`
-    ];
-    return { 
-      response: handoffResponses[Math.floor(Math.random() * handoffResponses.length)],
-      departments: [handoff.to],
-      handoff
-    };
-  }
-  
-  // First check for multi-department collaboration patterns
-  const collaboration = detectCollaboration(message);
-  if (collaboration) {
-    const deptNames: Record<Department, string> = {
-      story: 'Story',
-      character: 'Character Design',
-      soundtrack: 'Audio',
-      cinematography: 'Cinematography',
-      dialogue: 'Voice & Dialogue',
-      post_production: 'Post-Production',
-      marketing: 'Marketing'
-    };
-    const collabList = collaboration.map(d => deptNames[d]).join(', ');
-    return { 
-      response: `Coordinating ${collabList} departments for this. What's the vision?`,
-      departments: collaboration,
-      handoff: null
-    };
-  }
-  
-  // Detect which departments should handle this
-  const detectedDepartments = detectDepartment(message);
-  
-  // Detect intent patterns
-  const isGreeting = /^(hi|hello|hey|greetings)/i.test(message);
-  const isQuestion = message.includes('?') || /^(what|how|why|when|where|who|can|could|would|should)/i.test(message);
-  const isRequest = /^(create|make|build|generate|add|update|fix|change|remove)/i.test(message);
-  const isConfirmation = /^(yes|yeah|yep|sure|okay|ok|correct|right)/i.test(message);
-  
-  // Check for context from previous conversation
-  const hasContext = conversationHistory.length > 0;
-  const lastMessage = hasContext ? conversationHistory[conversationHistory.length - 1] : null;
-  
-  // Generate contextual response
-  if (isGreeting && !hasContext) {
-    const greetings = [
-      "Hey! What's up?",
-      "Hi :) what are we doing today?",
-      "Hey, how can I help?",
-      "Hi! What do you need?"
-    ];
-    return { response: greetings[Math.floor(Math.random() * greetings.length)], departments: [], handoff: null };
-  }
-  
-  // If departments detected, route to those departments
-  if (detectedDepartments.length > 0) {
-    const deptResponse = getDepartmentResponse(detectedDepartments, message);
-    return { response: deptResponse, departments: detectedDepartments, handoff: null };
-  }
-  
-  if (isRequest) {
-    // Video production requests
-    if (lowerMessage.includes('video') || lowerMessage.includes('episode')) {
-      return { 
-        response: "Got it, full production. I'll coordinate all departments - story, characters, camera, audio, everything. What's it about?", 
-        departments: COLLABORATION_PATTERNS.full_production,
-        handoff: null
-      };
-    }
-    
-    // Generic creative request
-    return { 
-      response: "What do you want to create?", 
-      departments: [],
-      handoff: null
-    };
-  }
-  
-  if (isQuestion) {
-    // Questions about capabilities
-    if (lowerMessage.includes('what can') || lowerMessage.includes('what do')) {
-      return { 
-        response: "I run 7 departments: story/scripts, character design, music, camera work, dialogue/voice, editing, and marketing. They can work solo or collaborate. What do you need?", 
-        departments: [],
-        handoff: null
-      };
-    }
-    
-    // Questions about process
-    if (lowerMessage.includes('how') || lowerMessage.includes('process')) {
-      return { 
-        response: "I coordinate departments based on what you need. Single task = one department. Complex work = multiple departments collaborate. Just tell me what you want.", 
-        departments: [],
-        handoff: null
-      };
-    }
-  }
-  
-  // Check if this is a follow-up to previous conversation
-  if (hasContext && lastMessage?.role === 'assistant') {
-    if (isConfirmation) {
-      return { 
-        response: "Cool, starting now.", 
-        departments: activeDepartments || [],
-        handoff: null
-      };
-    }
-    
-    // Analyze if user is providing additional details
-    if (!isGreeting && !isQuestion) {
-      return { 
-        response: `Got it. Anything else?`, 
-        departments: activeDepartments || [],
-        handoff: null
-      };
-    }
-  }
-  
-  // Default intelligent response
-  return { response: "Okay, what else?", departments: activeDepartments || [], handoff: null };
 }
 
 Deno.serve(async (req) => {
@@ -392,14 +118,14 @@ Deno.serve(async (req) => {
     // God-Tier mode operates without auth for public access
     const isGodTier = mode === 'god_tier';
 
-    // GOD-TIER MODE: GPT-5.1-like conversational AI with deep context tracking
+    // GOD-TIER MODE: Unified AI System with Complete Control
     if (isGodTier) {
-      console.log('⚡ GOD-TIER ORCHESTRATOR: GPT-5.1 Mode - Deep Context Tracking Activated');
+      console.log('⚡ UNIFIED GOD-TIER AI: Complete Intelligence System Activated');
 
       // Retrieve or create conversation session
       const actualSessionId = sessionId || crypto.randomUUID();
       
-      // Load conversation history
+      // Load conversation history and context
       const { data: existingConversation } = await supabase
         .from('orchestrator_conversations')
         .select('*')
@@ -409,36 +135,55 @@ Deno.serve(async (req) => {
       const conversationHistory = existingConversation?.conversation_data || [];
       const userGoals = existingConversation?.user_goals || [];
       const activeTopics = existingConversation?.active_topics || [];
-      const activeDepartments = existingConversation?.metadata?.active_departments || [];
       
-      console.log('🧠 Processing with local intelligence engine...');
+      console.log('🧠 Processing with unified god-tier AI intelligence...');
       
-      // Analyze user intent and generate intelligent response
-      const { response: aiMessage, departments: newDepartments, handoff } = generateIntelligentResponse({
+      // Extract file attachments from context if present
+      const files = context?.attachedFiles;
+      
+      // Generate unified AI response using advanced reasoning
+      const aiMessage = await generateUnifiedResponse({
         message,
         conversationHistory,
         userGoals,
         activeTopics,
         context: { episodeId, projectId, currentPage: context?.currentPage },
-        activeDepartments
+        files
       });
 
-      // Extract user goals and topics from the conversation
+      // Intelligently extract user goals and topics from conversation
       const newGoals = [...userGoals];
       const newTopics = [...activeTopics];
       
-      // Simple goal detection
-      if (message.toLowerCase().includes('want to') || message.toLowerCase().includes('need to') || message.toLowerCase().includes('goal')) {
-        const goalMatch = message.match(/(?:want to|need to|goal.*?is to)\s+(.+?)(?:\.|$)/i);
-        if (goalMatch && !newGoals.includes(goalMatch[1])) {
-          newGoals.push(goalMatch[1].trim());
+      // Advanced goal detection
+      const goalPatterns = [
+        /(?:want to|need to|goal.*?is to|trying to|planning to|hoping to)\s+(.+?)(?:\.|,|$)/gi,
+        /(?:would like to|wish to|aim to|intend to)\s+(.+?)(?:\.|,|$)/gi
+      ];
+      
+      for (const pattern of goalPatterns) {
+        const matches = [...message.matchAll(pattern)];
+        for (const match of matches) {
+          const matchArray = match as RegExpMatchArray;
+          if (matchArray[1]) {
+            const goal = matchArray[1].trim();
+            if (goal.length > 5 && !newGoals.includes(goal)) {
+              newGoals.push(goal);
+            }
+          }
         }
       }
       
-      // Topic extraction from keywords
-      const topicKeywords = ['video', 'app', 'audio', 'design', 'script', 'episode', 'project'];
+      // Intelligent topic extraction
+      const topicKeywords = [
+        'video', 'app', 'audio', 'design', 'script', 'episode', 'project',
+        'bot', 'automation', 'file', 'task', 'work', 'school', 'development',
+        'writing', 'content', 'marketing', 'production', 'editing'
+      ];
+      
       for (const keyword of topicKeywords) {
-        if (message.toLowerCase().includes(keyword) && !newTopics.includes(keyword)) {
+        const regex = new RegExp(`\\b${keyword}\\b`, 'i');
+        if (regex.test(message) && !newTopics.includes(keyword)) {
           newTopics.push(keyword);
         }
       }
@@ -446,14 +191,14 @@ Deno.serve(async (req) => {
       // Update conversation history
       const updatedHistory = [
         ...conversationHistory,
-        { role: 'user', content: message, timestamp: new Date().toISOString() },
+        { role: 'user', content: message, timestamp: new Date().toISOString(), files },
         { role: 'assistant', content: aiMessage, timestamp: new Date().toISOString() }
       ];
 
       // Compress conversation if it gets too long (keep last 50 messages)
       const compressedHistory = updatedHistory.slice(-50);
 
-      // Save conversation state
+      // Save conversation state with enhanced context
       if (existingConversation) {
         await supabase
           .from('orchestrator_conversations')
@@ -462,7 +207,7 @@ Deno.serve(async (req) => {
             user_goals: newGoals.slice(-10),
             active_topics: newTopics.slice(-10),
             updated_at: new Date().toISOString(),
-            metadata: { active_departments: newDepartments }
+            context_summary: `Latest: ${message.substring(0, 200)}...`
           })
           .eq('session_id', actualSessionId);
       } else {
@@ -473,28 +218,31 @@ Deno.serve(async (req) => {
             conversation_data: compressedHistory,
             user_goals: newGoals,
             active_topics: newTopics,
-            metadata: { active_departments: newDepartments }
+            context_summary: `Started with: ${message.substring(0, 200)}...`
           });
       }
 
-      console.log('✅ Response generated with full context awareness');
+      console.log('✅ Unified AI response generated with complete context awareness');
 
       return new Response(
         JSON.stringify({
-          success: true,
-          mode: 'god_tier_gpt5',
           response: aiMessage,
           sessionId: actualSessionId,
-          conversationLength: compressedHistory.length,
-          trackedGoals: newGoals,
+          userGoals: newGoals,
           activeTopics: newTopics,
-          activeDepartments: newDepartments,
-          handoff: handoff,
-          message: newDepartments.length > 1 
-            ? `⚡ God-Tier Orchestrator - Multi-Department Collaboration Active (${newDepartments.length} departments)`
-            : '⚡ God-Tier Orchestrator - Smart Department Routing Active'
+          unifiedSystem: true,
+          capabilities: [
+            'video_production',
+            'app_development', 
+            'task_automation',
+            'content_creation',
+            'bot_creation',
+            'general_assistance'
+          ]
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
       );
     }
 

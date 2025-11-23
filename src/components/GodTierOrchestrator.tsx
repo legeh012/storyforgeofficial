@@ -7,7 +7,6 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
-import { DepartmentCollaboration } from '@/components/DepartmentCollaboration';
 import { messageSchema } from '@/lib/validations';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
@@ -38,12 +37,10 @@ export const GodTierOrchestrator = () => {
     return saved !== null ? saved === 'true' : true;
   });
   const [sessionId] = useState(() => crypto.randomUUID());
-  const [activeDepartments, setActiveDepartments] = useState<string[]>([]);
-  const [handoff, setHandoff] = useState<{from: string; to: string; context: string} | null>(null);
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: "Hey! I'm Mayza - your comprehensive AI productivity system. I listen, interpret your intentions, and execute actions across all aspects of your life. I can handle work tasks, school projects, development, writing, planning, automation, file management, app control, video production, bot creation, and anything else you need. I track our entire conversation deeply and work toward your goals without redundant questions. What's up?",
+      content: "Hey! I'm Mayza - ONE unified AI system with complete control over everything. I handle all your tasks: work, school, development, video production, automation, bot creation, content, planning - literally anything. I remember our entire conversation, predict what you need, and speak like a real assistant. No departments, no routing, just me helping you get things done. What's up?",
       capabilities: GOD_TIER_CAPABILITIES.map(c => c.label)
     }
   ]);
@@ -283,40 +280,17 @@ export const GodTierOrchestrator = () => {
         throw new Error(errorMsg);
       }
 
-      logger.debug('Bot orchestrator response received', { 
-        activeDepartments: data.activeDepartments,
-        hasHandoff: !!data.handoff 
+      logger.debug('Unified AI response received', { 
+        unifiedSystem: data.unifiedSystem,
+        capabilities: data.capabilities
       });
-      
-      // Update active departments
-      if (data.activeDepartments) {
-        setActiveDepartments(data.activeDepartments);
-      }
-      
-      // Show handoff if present
-      if (data.handoff) {
-        setHandoff(data.handoff);
-        logger.info('Department handoff', {
-          from: data.handoff.from,
-          to: data.handoff.to,
-          context: data.handoff.context,
-        });
-      }
-      
-      // Track active departments
-      if (data.activeDepartments && data.activeDepartments.length > 0) {
-        logger.info('Active departments updated', {
-          departments: data.activeDepartments,
-          collaborationMode: data.activeDepartments.length > 1,
-        });
-      }
 
-      const assistantMessage = data?.response || data?.message || 'Task initiated. All Mayza capabilities are engaged.';
+      const assistantMessage = data?.response || data?.message || 'Got it, on it now.';
       
       setMessages(prev => [...prev, {
         role: 'assistant',
         content: assistantMessage,
-        capabilities: data?.activatedCapabilities
+        capabilities: data?.unifiedSystem ? ['Unified AI System'] : undefined
       }]);
 
     } catch (error) {
@@ -420,24 +394,22 @@ export const GodTierOrchestrator = () => {
         </div>
       </div>
 
-      {/* Capabilities Bar */}
-      <div className="p-3 bg-muted/30 border-b space-y-2">
-        <div className="flex flex-wrap gap-1">
-          {GOD_TIER_CAPABILITIES.map((cap, idx) => (
-            <Badge key={idx} variant="secondary" className="text-xs gap-1">
-              <cap.icon className={`h-3 w-3 ${cap.color}`} />
-              {cap.label}
-            </Badge>
-          ))}
+      {/* Unified Capabilities Bar */}
+      <div className="p-3 bg-muted/30 border-b">
+        <div className="flex items-center justify-between">
+          <div className="flex flex-wrap gap-1">
+            {GOD_TIER_CAPABILITIES.slice(0, 5).map((cap, idx) => (
+              <Badge key={idx} variant="secondary" className="text-xs gap-1">
+                <cap.icon className={`h-3 w-3 ${cap.color}`} />
+                {cap.label}
+              </Badge>
+            ))}
+          </div>
+          <Badge variant="outline" className="text-xs">
+            <Sparkles className="h-3 w-3 mr-1 text-yellow-500" />
+            Unified System
+          </Badge>
         </div>
-        
-        {/* Department Collaboration Indicator */}
-        {activeDepartments.length > 0 && (
-          <DepartmentCollaboration 
-            departments={activeDepartments} 
-            handoff={handoff || undefined}
-          />
-        )}
       </div>
 
       {/* Messages */}
