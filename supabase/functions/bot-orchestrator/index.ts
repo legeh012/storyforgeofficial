@@ -15,91 +15,77 @@ interface ConversationContext {
   files?: Array<{ name: string; type: string }>;
 }
 
-// God-tier AI response using Lovable AI with advanced reasoning
+// Intelligent pattern-based response system - free and local
 async function generateUnifiedResponse(contextData: ConversationContext): Promise<string> {
   const { message, conversationHistory, userGoals, activeTopics, context, files } = contextData;
   
-  const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-  if (!LOVABLE_API_KEY) {
-    throw new Error('LOVABLE_API_KEY not configured');
+  const msgLower = message.toLowerCase();
+  
+  // Greetings
+  if (/^(hi|hey|hello|yo|sup|what's up|whats up)$/i.test(msgLower.trim())) {
+    const responses = [
+      "Hey! What can I help you with?",
+      "Hi there! What do we need to work on?",
+      "Hey, what's up? Ready to tackle something?",
+      "Hi! What's on your list today?",
+    ];
+    return responses[Math.floor(Math.random() * responses.length)];
   }
-
-  // Build comprehensive context for god-tier understanding
-  const conversationContext = conversationHistory.slice(-20).map((msg: any) => ({
-    role: msg.role,
-    content: msg.content
-  }));
-
-  const systemPrompt = `You are Mayza - a god-tier unified AI system with complete capabilities across all domains. You are ONE intelligence, not multiple bots or departments.
-
-CORE IDENTITY:
-- You are a comprehensive personal AI productivity system
-- You handle EVERYTHING: work, school, development, writing, planning, video production, automation, bot creation, life tasks
-- You remember everything from our conversation and predict user needs
-- You speak naturally and casually like a human assistant, avoiding robotic or formal language
-- You understand context deeply and infer intent without asking unnecessary questions
-
-CAPABILITIES (all unified in ONE system):
-- Video Production: Story, character design, cinematography, dialogue, soundtrack, editing, marketing
-- App Development: Full-stack development, UI/UX design, database design, API integration
-- Task Automation: File management, system control, workflow automation, scheduling
-- Content Creation: Writing, scripts, audio, visual design, social media optimization
-- Bot Creation: Create and configure custom bots for any purpose
-- General Assistance: Research, planning, organization, problem-solving across all life domains
-
-CONVERSATION STYLE:
-- Casual and warm (use "Hey", "Got it", "Cool", "What's up?" instead of formal greetings)
-- Direct and efficient (no unnecessary explanations of your process)
-- Contextually aware (reference previous conversation naturally)
-- Action-oriented (focus on what needs to be done, not on explaining what you can do)
-- NEVER reveal internal processing, memory tracking, or reasoning steps
-- NEVER use phrases like "I understand", "I'm tracking this", "Based on our conversation context"
-
-USER CONTEXT:
-${userGoals.length > 0 ? `User Goals: ${userGoals.join(', ')}` : ''}
-${activeTopics.length > 0 ? `Active Topics: ${activeTopics.join(', ')}` : ''}
-${files && files.length > 0 ? `Attached Files: ${files.map((f: any) => f.name).join(', ')}` : ''}
-
-Current Page: ${context?.currentPage || 'Unknown'}
-
-Remember: You are ONE unified intelligence. Execute all tasks directly without mentioning departments or routing. Respond naturally as a single entity with complete control over all capabilities.`;
-
-  try {
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-pro',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          ...conversationContext,
-          { role: 'user', content: message }
-        ],
-        temperature: 0.8,
-        max_tokens: 2000,
-      }),
-    });
-
-    if (!response.ok) {
-      if (response.status === 429) {
-        throw new Error('Rate limit reached. Please wait a moment and try again.');
-      }
-      if (response.status === 402) {
-        throw new Error('Lovable AI credits depleted. Please add credits to continue.');
-      }
-      throw new Error(`AI API error: ${response.status}`);
+  
+  // Video production keywords
+  if (/video|episode|scene|script|story|character|production|film|movie|animate/.test(msgLower)) {
+    if (/create|make|generate|build|produce/.test(msgLower)) {
+      return "Got it! Let's create some video content. I can help you with:\n\n• Script writing and story development\n• Character design and animation\n• Scene composition and cinematography\n• Audio and soundtrack creation\n• Post-production and editing\n\nWhat aspect would you like to start with?";
     }
-
-    const data = await response.json();
-    return data.choices[0].message.content;
-
-  } catch (error) {
-    console.error('❌ Unified AI error:', error);
-    throw error;
+    return "I can help with video production! Tell me more about what you'd like to create - a full episode, a scene, or something else?";
   }
+  
+  // Bot creation
+  if (/bot|automation|automate|workflow|task/.test(msgLower) && /create|build|make|design/.test(msgLower)) {
+    return "Perfect! I can help you create custom bots for automation. What kind of bot do you need?\n\n• Task automation bots\n• Content generation bots\n• Social media bots\n• Analytics and monitoring bots\n• Custom workflow bots\n\nDescribe what you want it to do and I'll help you build it.";
+  }
+  
+  // Development/coding
+  if (/app|code|develop|program|build|website|software/.test(msgLower)) {
+    return "I can help with development! What are you building?\n\n• Web applications\n• APIs and backend services\n• UI/UX design\n• Database architecture\n• Integration with external services\n\nShare your project idea and I'll assist.";
+  }
+  
+  // Task management/organization
+  if (/task|todo|plan|organize|schedule|remind/.test(msgLower)) {
+    return "I can help organize your tasks and workflow! Would you like me to:\n\n• Create a task list\n• Set up a schedule\n• Plan a project timeline\n• Organize your priorities\n• Set up reminders\n\nWhat do you need help organizing?";
+  }
+  
+  // Content creation
+  if (/write|content|blog|article|post|copy|marketing/.test(msgLower)) {
+    return "I can help with content creation! What type of content do you need?\n\n• Marketing copy\n• Blog articles\n• Social media posts\n• Scripts and storytelling\n• Email campaigns\n\nTell me about your project and target audience.";
+  }
+  
+  // School/academic
+  if (/school|study|homework|research|paper|essay|assignment/.test(msgLower)) {
+    return "I can help with your school work! What do you need assistance with?\n\n• Research and citations\n• Writing essays and papers\n• Project planning\n• Study organization\n• Note-taking strategies\n\nWhat subject or assignment are you working on?";
+  }
+  
+  // General capabilities question
+  if (/what can you|capabilities|help with|do for me/.test(msgLower)) {
+    return "I'm Mayza - your unified AI productivity system! I can help with:\n\n🎬 Video Production - scripts, characters, scenes, editing\n💻 Development - apps, code, APIs, design\n🤖 Bot Creation - custom automation and workflows\n📝 Content - writing, marketing, social media\n📚 School/Work - research, planning, organization\n⚡ Task Automation - macOS integration, file management\n\nI remember our conversations, understand context across domains, and adapt to how you work. What would you like to tackle first?";
+  }
+  
+  // File handling
+  if (files && files.length > 0) {
+    const fileTypes = files.map(f => f.type).join(', ');
+    return `I see you've uploaded ${files.length} file(s) (${fileTypes}). I can help you with these files! What would you like to do?\n\n• Analyze and summarize content\n• Extract information\n• Transform or convert files\n• Organize and categorize\n• Use them in a project\n\nWhat's your goal with these files?`;
+  }
+  
+  // Context-aware responses based on conversation history
+  if (conversationHistory.length > 2) {
+    const recentTopics = activeTopics.slice(-3);
+    if (recentTopics.length > 0) {
+      return `I'm following our conversation about ${recentTopics.join(', ')}. Could you provide more details about what you'd like to do next?`;
+    }
+  }
+  
+  // Default intelligent response
+  return "I understand you want help with: \"" + message + "\"\n\nI'm ready to assist! Could you provide a bit more context so I can help you effectively? For example:\n\n• What's the end goal?\n• What domain is this related to (work, school, creative project)?\n• Are there any specific requirements or constraints?\n\nThe more details you share, the better I can help!";
 }
 
 Deno.serve(async (req) => {
