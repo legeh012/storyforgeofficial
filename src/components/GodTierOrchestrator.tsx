@@ -470,7 +470,32 @@ export const GodTierOrchestrator = () => {
                 </div>
               )}
               
-              <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+              <div className="text-sm whitespace-pre-wrap space-y-2">
+                {msg.content.split('\n').map((line, lineIdx) => {
+                  // Detect YouTube URLs
+                  const youtubeMatch = line.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+                  
+                  if (youtubeMatch) {
+                    const videoId = youtubeMatch[1];
+                    return (
+                      <div key={lineIdx} className="my-2">
+                        <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+                          <iframe
+                            className="absolute top-0 left-0 w-full h-full rounded"
+                            src={`https://www.youtube.com/embed/${videoId}`}
+                            title="YouTube video"
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
+                        </div>
+                      </div>
+                    );
+                  }
+                  
+                  return <p key={lineIdx}>{line}</p>;
+                })}
+              </div>
             </div>
           </div>
         ))}

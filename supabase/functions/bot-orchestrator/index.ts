@@ -156,16 +156,21 @@ async function generateUnifiedResponse(contextData: ConversationContext): Promis
     return `I see you've uploaded ${files.length} file(s). ${suggestedActions}\n\nI can help you:\n\n• Analyze and summarize content\n• Extract information\n• Transform or convert files\n• Organize and categorize\n• Use them in your project\n\nWhat would you like to do with these files?`;
   }
   
-  // Context-aware continuation
+  // Context-aware continuation with memory check
   if (conversationHistory.length > 2) {
     const continuation = detectContinuation(message, conversationContext);
     if (continuation) {
       return continuation;
     }
     
+    // Don't ask what they want if we just discussed it
     const recentTopics = activeTopics.slice(-3);
-    if (recentTopics.length > 0) {
-      return `I'm following our conversation about ${recentTopics.join(', ')}. Could you provide more details about what you'd like to do next?`;
+    if (recentTopics.length > 0 && !conversationContext.hasAskedQuestion("what would you like to do")) {
+      const lastUserMessage = conversationHistory.slice().reverse().find((m: any) => m.role === 'user');
+      if (lastUserMessage && lastUserMessage.content.length > 20) {
+        // User gave substantial input, provide actionable response instead of asking
+        return `Based on what you've shared about ${recentTopics[recentTopics.length - 1]}, I can start working on that. Should I proceed with implementation, or would you like to refine the approach first?`;
+      }
     }
   }
   
@@ -326,11 +331,33 @@ function analyzeSentiment(msgLower: string): string {
 }
 
 function buildConversationContext(history: any[], topics: string[], goals: string[]) {
+  const recentMessages = history.slice(-10); // Last 10 messages for immediate context
+  const discussedTopics = new Set(topics);
+  const askedQuestions = new Set<string>();
+  
+  // Extract previously asked questions to avoid repetition
+  for (const msg of recentMessages) {
+    if (msg.role === 'assistant' && msg.content.includes('?')) {
+      const questions = msg.content.match(/[^.!?]*\?/g);
+      if (questions) {
+        questions.forEach((q: string) => askedQuestions.add(q.trim().toLowerCase()));
+      }
+    }
+  }
+  
   return {
     messageCount: history.length,
     topics: topics,
     goals: goals,
-    hasDiscussed: (keyword: string) => topics.some(t => t.toLowerCase().includes(keyword.toLowerCase()))
+    hasDiscussed: (topic: string) => discussedTopics.has(topic.toLowerCase()) || topics.some(t => t.toLowerCase().includes(topic.toLowerCase())),
+    recentMessages,
+    askedQuestions,
+    hasAskedQuestion: (question: string) => {
+      const normalized = question.toLowerCase().replace(/[.!?]/g, '').trim();
+      return Array.from(askedQuestions).some(q => 
+        q.includes(normalized) || normalized.includes(q.replace(/[.!?]/g, '').trim())
+      );
+    }
   };
 }
 
