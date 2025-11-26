@@ -40,8 +40,8 @@ export const GodTierOrchestrator = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: "Hey! I'm Mayza - ONE unified AI system with complete control over everything. I handle all your tasks: work, school, development, video production, automation, bot creation, content, planning - literally anything. I remember our entire conversation, predict what you need, and speak like a real assistant. No departments, no routing, just me helping you get things done. What's up?",
-      capabilities: GOD_TIER_CAPABILITIES.map(c => c.label)
+      content: "Hey! I'm Mayza - your singular AI assistant with all capabilities built-in. I'm not a collection of bots, I'm ONE intelligence that handles everything: development, video production, automation, content creation, school work, planning, and anything else you need. I remember our entire conversation and adapt to how you work. What can I help you with?",
+      capabilities: ['Unified AI Intelligence']
     }
   ]);
   const [input, setInput] = useState('');
@@ -280,17 +280,17 @@ export const GodTierOrchestrator = () => {
         throw new Error(errorMsg);
       }
 
-      logger.debug('Unified AI response received', { 
-        unifiedSystem: data.unifiedSystem,
-        capabilities: data.capabilities
-      });
-
       const assistantMessage = data?.response || data?.message || 'Got it, on it now.';
+
+      logger.debug('Mayza response received', { 
+        sessionId,
+        messageLength: assistantMessage.length
+      });
       
       setMessages(prev => [...prev, {
         role: 'assistant',
         content: assistantMessage,
-        capabilities: data?.unifiedSystem ? ['Unified AI System'] : undefined
+        capabilities: ['Mayza']
       }]);
 
     } catch (error) {
@@ -367,7 +367,7 @@ export const GodTierOrchestrator = () => {
           <div>
             <h3 className="font-bold text-lg">Mayza</h3>
             <p className={`text-xs ${isActive ? 'text-white/80' : 'text-muted-foreground'}`}>
-              {isActive ? 'AI Productivity System • Work • School • Life' : 'Inactive'}
+              {isActive ? 'One AI • All Capabilities • Zero Routing' : 'Inactive'}
             </p>
           </div>
         </div>
@@ -394,11 +394,11 @@ export const GodTierOrchestrator = () => {
         </div>
       </div>
 
-      {/* Unified Capabilities Bar */}
+      {/* Mayza Capabilities */}
       <div className="p-3 bg-muted/30 border-b">
         <div className="flex items-center justify-between">
           <div className="flex flex-wrap gap-1">
-            {GOD_TIER_CAPABILITIES.slice(0, 5).map((cap, idx) => (
+            {GOD_TIER_CAPABILITIES.slice(0, 6).map((cap, idx) => (
               <Badge key={idx} variant="secondary" className="text-xs gap-1">
                 <cap.icon className={`h-3 w-3 ${cap.color}`} />
                 {cap.label}
@@ -407,7 +407,7 @@ export const GodTierOrchestrator = () => {
           </div>
           <Badge variant="outline" className="text-xs">
             <Sparkles className="h-3 w-3 mr-1 text-yellow-500" />
-            Unified System
+            Mayza Core
           </Badge>
         </div>
       </div>
@@ -480,7 +480,7 @@ export const GodTierOrchestrator = () => {
             <div className="bg-muted rounded-lg p-3 flex items-center gap-2">
               <Loader2 className="h-4 w-4 animate-spin" />
               <span className="text-sm text-muted-foreground">
-                Orchestrating Mayza capabilities...
+                Mayza is thinking...
               </span>
             </div>
           </div>
