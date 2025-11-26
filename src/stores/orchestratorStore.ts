@@ -17,10 +17,6 @@ interface OrchestratorState {
   // Messages
   messages: Message[];
   
-  // Departments
-  activeDepartments: string[];
-  handoff: { from: string; to: string; context: string } | null;
-  
   // File uploads
   uploadedFiles: Array<{ name: string; type: string; url: string }>;
   
@@ -28,8 +24,6 @@ interface OrchestratorState {
   setIsActive: (active: boolean) => void;
   setIsLoading: (loading: boolean) => void;
   addMessage: (message: Message) => void;
-  setActiveDepartments: (departments: string[]) => void;
-  setHandoff: (handoff: { from: string; to: string; context: string } | null) => void;
   addUploadedFile: (file: { name: string; type: string; url: string }) => void;
   removeUploadedFile: (index: number) => void;
   clearUploadedFiles: () => void;
@@ -48,12 +42,10 @@ export const useOrchestratorStore = create<OrchestratorState>()(
     messages: [
       {
         role: 'assistant',
-        content: "Hey! I'm Mayza - your comprehensive AI productivity system. I listen, interpret your intentions, and execute actions across all aspects of your life. I can handle work tasks, school projects, development, writing, planning, automation, file management, app control, video production, bot creation, and anything else you need. I track our entire conversation deeply and work toward your goals without redundant questions. What's up?",
-          capabilities: ['App Builder', 'Video Director', 'Creative Studio', 'Audio Master', 'Viral Optimizer', 'AI Engineer', 'Task Automator', 'Digital Assistant', 'Bot Creator', 'Auto-Editing Intelligence']
+        content: "Hey! I'm Mayza - your singular AI assistant with all capabilities built-in. I'm not a collection of bots, I'm ONE intelligence that handles everything: development, video production, automation, content creation, school work, planning, and anything else you need. I remember our entire conversation and adapt to how you work. What can I help you with?",
+        capabilities: ['Unified AI Intelligence']
       }
     ],
-    activeDepartments: [],
-    handoff: null,
     uploadedFiles: [],
 
     // Actions
@@ -68,14 +60,6 @@ export const useOrchestratorStore = create<OrchestratorState>()(
 
     addMessage: (message) => set((state) => {
       state.messages.push(message);
-    }),
-
-    setActiveDepartments: (departments) => set((state) => {
-      state.activeDepartments = departments;
-    }),
-
-    setHandoff: (handoff) => set((state) => {
-      state.handoff = handoff;
     }),
 
     addUploadedFile: (file) => set((state) => {
@@ -99,12 +83,10 @@ export const useOrchestratorStore = create<OrchestratorState>()(
       state.messages = [
         {
           role: 'assistant',
-          content: "Hey! I'm Mayza - your comprehensive AI productivity system. I listen, interpret your intentions, and execute actions across all aspects of your life. I can handle work tasks, school projects, development, writing, planning, automation, file management, app control, video production, bot creation, and anything else you need. I track our entire conversation deeply and work toward your goals without redundant questions. What's up?",
-          capabilities: ['App Builder', 'Video Director', 'Creative Studio', 'Audio Master', 'Viral Optimizer', 'AI Engineer', 'Task Automator', 'Digital Assistant', 'Bot Creator', 'Auto-Editing Intelligence']
+          content: "Hey! I'm Mayza - your singular AI assistant with all capabilities built-in. I'm not a collection of bots, I'm ONE intelligence that handles everything: development, video production, automation, content creation, school work, planning, and anything else you need. I remember our entire conversation and adapt to how you work. What can I help you with?",
+          capabilities: ['Unified AI Intelligence']
         }
       ];
-      state.activeDepartments = [];
-      state.handoff = null;
       state.uploadedFiles = [];
       // Preserve the current active state
       state.isActive = currentActiveState;

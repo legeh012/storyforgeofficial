@@ -5,7 +5,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Unified God-Tier AI System - One intelligence with complete control
+// Mayza - Singular AI Intelligence with All Capabilities Built-In
 interface ConversationContext {
   message: string;
   conversationHistory: any[];
@@ -15,7 +15,7 @@ interface ConversationContext {
   files?: Array<{ name: string; type: string }>;
 }
 
-// Enhanced intelligent response system with advanced NLP and context tracking
+// Mayza's intelligent response system - ONE unified AI, no routing, no departments
 async function generateUnifiedResponse(contextData: ConversationContext): Promise<string> {
   const { message, conversationHistory, userGoals, activeTopics, context, files } = contextData;
   
@@ -140,12 +140,12 @@ async function generateUnifiedResponse(contextData: ConversationContext): Promis
   // General capabilities with context
   if (intent === 'capabilities' || /what can you|capabilities|help with|do for me|able to/.test(msgLower)) {
     if (conversationHistory.length > 2) {
-      return "I'm your unified AI system handling everything we've discussed! Currently I can help you continue with:\n\n" + 
+      return "I'm Mayza - ONE AI handling everything we've discussed! I can help you continue with:\n\n" + 
         (activeTopics.length > 0 ? `• ${activeTopics.join('\n• ')}\n\n` : '') +
-        "Or start something new:\n🎬 Video Production\n💻 Development\n🤖 Bot Creation\n📝 Content\n📚 School/Work\n⚡ Automation\n\nWhat would you like to work on?";
+        "Or start something new:\n🎬 Video Production\n💻 Development\n🤖 Automation\n📝 Content\n📚 School/Work\n⚡ Task Management\n\nWhat would you like to work on?";
     }
     
-    return "I'm Mayza - your unified AI productivity system! I can help with:\n\n🎬 Video Production - scripts, characters, scenes, editing\n💻 Development - apps, code, APIs, design\n🤖 Bot Creation - custom automation and workflows\n📝 Content - writing, marketing, social media\n📚 School/Work - research, planning, organization\n⚡ Task Automation - macOS integration, file management\n\nI remember our conversations, understand context across domains, and adapt to how you work. What would you like to tackle first?";
+    return "I'm Mayza - your singular AI assistant with everything built-in! I can help with:\n\n🎬 Video Production - scripts, characters, scenes, editing\n💻 Development - apps, code, APIs, design\n🤖 Automation - custom workflows and bots\n📝 Content - writing, marketing, social media\n📚 School/Work - research, planning, organization\n⚡ Task Management - planning, scheduling, organizing\n\nNo routing, no departments - just me understanding your needs and getting things done. What can I help you with?";
   }
   
   // File handling with intelligent analysis
@@ -411,7 +411,7 @@ Deno.serve(async (req) => {
       const userGoals = existingConversation?.user_goals || [];
       const activeTopics = existingConversation?.active_topics || [];
       
-      console.log('🧠 Processing with unified god-tier AI intelligence...');
+      console.log('🧠 Mayza processing request with full context awareness...');
       
       // Extract file attachments from context if present
       const files = context?.attachedFiles;
@@ -497,7 +497,7 @@ Deno.serve(async (req) => {
           });
       }
 
-      console.log('✅ Unified AI response generated with complete context awareness');
+      console.log('✅ Mayza response generated');
 
       return new Response(
         JSON.stringify({
@@ -505,15 +505,7 @@ Deno.serve(async (req) => {
           sessionId: actualSessionId,
           userGoals: newGoals,
           activeTopics: newTopics,
-          unifiedSystem: true,
-          capabilities: [
-            'video_production',
-            'app_development', 
-            'task_automation',
-            'content_creation',
-            'bot_creation',
-            'general_assistance'
-          ]
+          mayzaCore: true
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -521,17 +513,17 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Standard mode - return basic response
+    // Standard mode - redirect to Mayza mode
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: 'Standard mode not implemented. Please use god_tier mode.'
+        message: 'Please use god_tier mode to interact with Mayza.'
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('Bot orchestrator error:', error);
+    console.error('Mayza error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
       JSON.stringify({ error: errorMessage }),
