@@ -456,13 +456,23 @@ export const GodTierOrchestrator = () => {
                     <div key={i} className="flex items-center gap-2 text-xs bg-black/20 rounded p-2">
                       {file.type.startsWith('image/') ? (
                         <>
-                          <img src={file.url} alt={file.name} className="h-12 w-12 object-cover rounded" />
-                          <span className="truncate">{file.name}</span>
+                          <img src={file.url} alt={file.name} className="h-16 w-16 object-cover rounded" />
+                          <span className="truncate flex-1">{file.name}</span>
+                        </>
+                      ) : file.type.startsWith('video/') ? (
+                        <>
+                          <video 
+                            src={file.url}
+                            controls
+                            className="max-w-full rounded"
+                            style={{ maxHeight: '300px' }}
+                          />
+                          <span className="truncate text-xs mt-1">{file.name}</span>
                         </>
                       ) : (
                         <>
                           <File className="h-4 w-4" />
-                          <span className="truncate">{file.name}</span>
+                          <span className="truncate flex-1">{file.name}</span>
                         </>
                       )}
                     </div>
@@ -526,8 +536,36 @@ export const GodTierOrchestrator = () => {
                     <img 
                       src={file.url} 
                       alt={file.name} 
-                      className="h-16 w-16 object-cover rounded border border-border"
+                      className="h-20 w-20 object-cover rounded border border-border"
                     />
+                    <Button
+                      size="icon"
+                      variant="destructive"
+                      className="absolute -top-2 -right-2 h-5 w-5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => removeFile(i)}
+                      aria-label={`Remove ${file.name}`}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ) : file.type.startsWith('video/') ? (
+                  <div className="relative">
+                    <video 
+                      src={file.url}
+                      className="h-20 w-28 object-cover rounded border border-border"
+                      muted
+                      playsInline
+                      onMouseEnter={(e) => e.currentTarget.play()}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.pause();
+                        e.currentTarget.currentTime = 0;
+                      }}
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <div className="bg-black/50 rounded-full p-1">
+                        <Film className="h-4 w-4 text-white" />
+                      </div>
+                    </div>
                     <Button
                       size="icon"
                       variant="destructive"
