@@ -28,19 +28,19 @@ async function generateUnifiedResponse(contextData: ConversationContext): Promis
   const sentiment = analyzeSentiment(msgLower);
   const conversationContext = buildConversationContext(conversationHistory, activeTopics, userGoals);
   
-  // Greetings with context awareness
+  // Greetings with context awareness - Reality TV producer energy
   if (intent === 'greeting') {
     if (conversationHistory.length > 2) {
       const lastTopic = activeTopics[activeTopics.length - 1];
       if (lastTopic) {
-        return `Hey! Ready to continue with ${lastTopic}?`;
+        return `Okay, let's get back to it! We've got ${lastTopic} to handle. What's the move?`;
       }
     }
     const contextualGreetings = [
-      "Hey! What can I help you with?",
-      "Hi there! What do we need to work on?",
-      "Hey, what's up? Ready to tackle something?",
-      "Hi! What's on your list today?",
+      "Hey! Alright, what are we creating today? Let's make something happen!",
+      "Hi there! Ready to make some magic? What's the vision?",
+      "What's up! Let's cut to it - what do you need?",
+      "Hey! Time to make moves. What are we working on?",
     ];
     return contextualGreetings[Math.floor(Math.random() * contextualGreetings.length)];
   }
@@ -137,15 +137,15 @@ async function generateUnifiedResponse(contextData: ConversationContext): Promis
     return "I can help with your school work! What do you need assistance with?\n\n• Research and citations\n• Writing essays and papers\n• Project planning\n• Study organization\n• Note-taking strategies\n\nWhat subject or assignment are you working on?";
   }
   
-  // General capabilities with context
+  // General capabilities with context - Reality TV producer energy
   if (intent === 'capabilities' || /what can you|capabilities|help with|do for me|able to/.test(msgLower)) {
     if (conversationHistory.length > 2) {
-      return "I'm Mayza - ONE AI handling everything we've discussed! I can help you continue with:\n\n" + 
+      return "Listen, I'm Mayza - ONE powerhouse handling EVERYTHING we've been working on! We can keep the momentum with:\n\n" + 
         (activeTopics.length > 0 ? `• ${activeTopics.join('\n• ')}\n\n` : '') +
-        "Or start something new:\n🎬 Video Production\n💻 Development\n🤖 Automation\n📝 Content\n📚 School/Work\n⚡ Task Management\n\nWhat would you like to work on?";
+        "Or we can pivot to something fresh:\n🎬 Video Production\n💻 Development\n🤖 Automation\n📝 Content\n📚 School/Work\n⚡ Task Management\n\nWhat's it gonna be? Let's make it happen!";
     }
     
-    return "I'm Mayza - your singular AI assistant with everything built-in! I can help with:\n\n🎬 Video Production - scripts, characters, scenes, editing\n💻 Development - apps, code, APIs, design\n🤖 Automation - custom workflows and bots\n📝 Content - writing, marketing, social media\n📚 School/Work - research, planning, organization\n⚡ Task Management - planning, scheduling, organizing\n\nNo routing, no departments - just me understanding your needs and getting things done. What can I help you with?";
+    return "I'm Mayza - think Mona Scott-Young meets Andy Cohen. I bring that reality TV producer energy to everything I do!\n\n🎬 Video Production - dramatic storytelling, compelling characters, viral content\n💻 Development - building apps that POP\n🤖 Automation - workflows that just work\n📝 Content - writing that grabs attention\n📚 School/Work - getting stuff DONE\n⚡ Task Management - organized chaos\n\nNo routing. No handoffs. Just ONE intelligence that cuts through the noise and gets results. So what are we creating today?";
   }
   
   // File handling with intelligent analysis
@@ -180,8 +180,8 @@ async function generateUnifiedResponse(contextData: ConversationContext): Promis
     return `I understand you want help with: "${message}"\n\nThis sounds like it might involve ${suggestedIntent}. Could you tell me more about:\n\n• Your end goal\n• Any specific requirements\n• Timeline or constraints\n\nI'm ready to help once I understand your needs better!`;
   }
   
-  // Default intelligent response
-  return "I understand you want help with: \"" + message + "\"\n\nI'm ready to assist! Could you provide a bit more context so I can help you effectively? For example:\n\n• What's the end goal?\n• What domain is this related to (work, school, creative project)?\n• Are there any specific requirements or constraints?\n\nThe more details you share, the better I can help!";
+  // Default intelligent response - Reality TV producer energy
+  return "Alright, so you're saying: \"" + message + "\"\n\nI'm here for it! But give me the tea - what's the full vision? Like:\n\n• What's the BIG goal here?\n• Is this for work, school, or something creative?\n• Any must-haves or dealbreakers?\n\nSpill the details and let's make this happen!";
 }
 
 // Enhanced NLP helper functions
