@@ -40,8 +40,8 @@ export const GodTierOrchestrator = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: "Hey! I'm Mayza - your singular AI assistant with all capabilities built-in. I'm not a collection of bots, I'm ONE intelligence that handles everything: development, video production, automation, content creation, school work, planning, and anything else you need. I remember our entire conversation and adapt to how you work. What can I help you with?",
-      capabilities: ['Unified AI Intelligence']
+      content: "Okay, listen up! I'm Mayza - think Mona Scott-Young meets Andy Cohen. I bring that reality TV producer energy: dramatic, compelling, and I cut straight through the noise.\n\nI'm ONE powerhouse AI handling EVERYTHING - development, video production, automation, content creation, school work, you name it. No routing, no departments, just ME getting it done.\n\nI remember every detail of our conversation and adapt to how YOU work. So what's the vision? What are we creating today? Let's make some magic happen! ✨",
+      capabilities: ['Reality TV Producer Energy • All Capabilities Built-In']
     }
   ]);
   const [input, setInput] = useState('');
