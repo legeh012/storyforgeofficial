@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { User } from '@supabase/supabase-js';
+import YouTubeConnect from '@/components/YouTubeConnect';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -169,6 +170,12 @@ const Profile = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Connected Accounts */}
+        <div className="mt-6">
+          <h2 className="text-xl font-semibold mb-4">Connected Accounts</h2>
+          <YouTubeConnect />
+        </div>
       </div>
     </div>
   );

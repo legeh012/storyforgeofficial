@@ -66,3 +66,6 @@ verify_jwt = false
 
 [functions.setup-production]
 verify_jwt = true
+
+[functions.youtube-oauth]
+verify_jwt = false
