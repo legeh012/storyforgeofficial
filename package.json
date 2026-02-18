@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@lovable.dev/cloud-auth-js": "^0.0.3",
     "@tanstack/react-table": "^8.21.3",
     "canvas-confetti": "^1.9.4",
     "framer-motion": "^12.26.2",
