@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion } from "framer-motion";
+import ReactPlayer from "react-player";
 import { 
   Video, 
   Play, 
@@ -11,7 +12,12 @@ import {
   Monitor,
   Layers,
   Palette,
-  Zap
+  Zap,
+  Volume2,
+  VolumeX,
+  Maximize2,
+  SkipBack,
+  Square
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,10 +47,17 @@ const VideoSynthesis = () => {
   const [characterConsistency, setCharacterConsistency] = useState([85]);
   const [motionSmoothing, setMotionSmoothing] = useState([70]);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [volume, setVolume] = useState([80]);
+  const [played, setPlayed] = useState(0);
+  const [videoDuration, setVideoDuration] = useState(0);
+  const playerRef = useRef<ReactPlayer>(null);
 
   const { 
-    synthesize, 
-    videoUrl, 
+    synthesize,
+    cancelSynthesis,
+    videoUrl,
+    generatedVideo,
     isSynthesizing, 
     progress,
     currentStage
@@ -56,6 +69,9 @@ const VideoSynthesis = () => {
       return;
     }
     
+    setIsPlaying(false);
+    setPlayed(0);
+    
     await synthesize({
       prompt: scenePrompt,
       quality,
@@ -63,6 +79,50 @@ const VideoSynthesis = () => {
       characterConsistency: characterConsistency[0],
       motionSmoothing: motionSmoothing[0]
     });
+
+    toast.success("Video generated successfully!");
+  };
+
+  const handleProgress = (state: { played: number; playedSeconds: number }) => {
+    setPlayed(state.played);
+  };
+
+  const handleDuration = (dur: number) => {
+    setVideoDuration(dur);
+  };
+
+  const handleSeek = (value: number[]) => {
+    const seekTo = value[0] / 100;
+    setPlayed(seekTo);
+    playerRef.current?.seekTo(seekTo, "fraction");
+  };
+
+  const handleRestart = () => {
+    setPlayed(0);
+    playerRef.current?.seekTo(0, "fraction");
+    setIsPlaying(true);
+  };
+
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m}:${s.toString().padStart(2, "0")}`;
+  };
+
+  const handleDownload = async () => {
+    if (!videoUrl) return;
+    try {
+      const a = document.createElement("a");
+      a.href = videoUrl;
+      a.download = `storyforge_video_${Date.now()}.mp4`;
+      a.target = "_blank";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      toast.success("Download started");
+    } catch {
+      toast.error("Download failed — try right-clicking the video");
+    }
   };
 
   return (
@@ -71,13 +131,12 @@ const VideoSynthesis = () => {
       <Card className="glass lg:col-span-1">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Video className="w-5 h-5 text-mayza-cyan" />
+            <Video className="w-5 h-5 text-primary" />
             Video Settings
           </CardTitle>
           <CardDescription>Configure ultra-realistic video generation</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Scene Prompt */}
           <div className="space-y-2">
             <label className="text-sm font-medium">Scene Description</label>
             <Textarea 
@@ -88,7 +147,6 @@ const VideoSynthesis = () => {
             />
           </div>
 
-          {/* Quality Preset */}
           <div className="space-y-3">
             <label className="text-sm font-medium flex items-center gap-2">
               <Monitor className="w-4 h-4" />
@@ -99,13 +157,11 @@ const VideoSynthesis = () => {
                 <button
                   key={preset.id}
                   onClick={() => setQuality(preset.id)}
-                  className={`
-                    p-3 rounded-lg text-center transition-all
-                    ${quality === preset.id 
-                      ? "bg-mayza-cyan/20 border border-mayza-cyan/50" 
+                  className={`p-3 rounded-lg text-center transition-all ${
+                    quality === preset.id 
+                      ? "bg-primary/20 border border-primary/50" 
                       : "bg-muted/30 hover:bg-muted/50"
-                    }
-                  `}
+                  }`}
                 >
                   <p className="font-medium text-sm">{preset.label}</p>
                   <p className="text-xs text-muted-foreground">{preset.resolution}</p>
@@ -114,7 +170,6 @@ const VideoSynthesis = () => {
             </div>
           </div>
 
-          {/* Style Preset */}
           <div className="space-y-3">
             <label className="text-sm font-medium flex items-center gap-2">
               <Palette className="w-4 h-4" />
@@ -125,13 +180,11 @@ const VideoSynthesis = () => {
                 <button
                   key={preset.id}
                   onClick={() => setStyle(preset.id)}
-                  className={`
-                    p-2 rounded-lg text-left transition-all
-                    ${style === preset.id 
-                      ? "bg-mayza-cyan/20 border border-mayza-cyan/50" 
+                  className={`p-2 rounded-lg text-left transition-all ${
+                    style === preset.id 
+                      ? "bg-primary/20 border border-primary/50" 
                       : "bg-muted/30 hover:bg-muted/50"
-                    }
-                  `}
+                  }`}
                 >
                   <p className="font-medium text-sm">{preset.label}</p>
                   <p className="text-xs text-muted-foreground">{preset.desc}</p>
@@ -140,14 +193,13 @@ const VideoSynthesis = () => {
             </div>
           </div>
 
-          {/* Character Consistency */}
           <div className="space-y-3">
             <label className="text-sm font-medium flex items-center justify-between">
               <span className="flex items-center gap-2">
                 <Layers className="w-4 h-4" />
                 Character Consistency
               </span>
-              <span className="text-mayza-cyan">{characterConsistency[0]}%</span>
+              <span className="text-primary">{characterConsistency[0]}%</span>
             </label>
             <Slider 
               value={characterConsistency} 
@@ -157,14 +209,13 @@ const VideoSynthesis = () => {
             />
           </div>
 
-          {/* Motion Smoothing */}
           <div className="space-y-3">
             <label className="text-sm font-medium flex items-center justify-between">
               <span className="flex items-center gap-2">
                 <Zap className="w-4 h-4" />
                 Motion Smoothing
               </span>
-              <span className="text-mayza-purple">{motionSmoothing[0]}%</span>
+              <span className="text-accent-foreground">{motionSmoothing[0]}%</span>
             </label>
             <Slider 
               value={motionSmoothing} 
@@ -174,24 +225,30 @@ const VideoSynthesis = () => {
             />
           </div>
 
-          {/* Generate Button */}
-          <Button 
-            onClick={handleSynthesize}
-            disabled={isSynthesizing}
-            className="w-full bg-gradient-to-r from-cyan-500 to-teal-600 text-white font-semibold"
-          >
-            {isSynthesizing ? (
-              <>
-                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                Rendering...
-              </>
-            ) : (
-              <>
-                <Wand2 className="w-4 h-4 mr-2" />
-                Generate Video
-              </>
+          <div className="flex gap-2">
+            <Button 
+              onClick={handleSynthesize}
+              disabled={isSynthesizing}
+              className="flex-1 bg-gradient-to-r from-cyan-500 to-teal-600 text-white font-semibold"
+            >
+              {isSynthesizing ? (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  Rendering...
+                </>
+              ) : (
+                <>
+                  <Wand2 className="w-4 h-4 mr-2" />
+                  Generate Video
+                </>
+              )}
+            </Button>
+            {isSynthesizing && (
+              <Button variant="outline" onClick={cancelSynthesis}>
+                <Square className="w-4 h-4" />
+              </Button>
             )}
-          </Button>
+          </div>
 
           {isSynthesizing && (
             <div className="space-y-2">
@@ -204,21 +261,26 @@ const VideoSynthesis = () => {
         </CardContent>
       </Card>
 
-      {/* Video Preview */}
+      {/* Video Preview with Real Player */}
       <Card className="glass lg:col-span-2">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
-              <Monitor className="w-5 h-5 text-mayza-cyan" />
+              <Monitor className="w-5 h-5 text-primary" />
               Video Preview
+              {generatedVideo?.hasAudio && (
+                <span className="ml-2 px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 text-xs flex items-center gap-1">
+                  <Volume2 className="w-3 h-3" /> Audio
+                </span>
+              )}
             </CardTitle>
             {videoUrl && (
               <div className="flex gap-2">
-                <Button variant="outline" size="sm">
-                  <Settings2 className="w-4 h-4 mr-1" />
-                  Edit
+                <Button variant="outline" size="sm" onClick={handleRestart}>
+                  <SkipBack className="w-4 h-4 mr-1" />
+                  Restart
                 </Button>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" onClick={handleDownload}>
                   <Download className="w-4 h-4 mr-1" />
                   Export
                 </Button>
@@ -233,37 +295,124 @@ const VideoSynthesis = () => {
               animate={{ opacity: 1 }}
               className="space-y-4"
             >
-              <div className="relative aspect-video bg-muted/30 rounded-xl overflow-hidden">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Button 
-                    size="lg" 
-                    onClick={() => setIsPlaying(!isPlaying)}
-                    className="rounded-full w-16 h-16 bg-white/20 backdrop-blur-sm hover:bg-white/30"
+              {/* Actual Video Player */}
+              <div className="relative aspect-video bg-black rounded-xl overflow-hidden">
+                <ReactPlayer
+                  ref={playerRef}
+                  url={videoUrl}
+                  playing={isPlaying}
+                  muted={isMuted}
+                  volume={volume[0] / 100}
+                  width="100%"
+                  height="100%"
+                  onProgress={handleProgress}
+                  onDuration={handleDuration}
+                  onEnded={() => setIsPlaying(false)}
+                  onError={() => toast.error("Video playback error")}
+                  config={{
+                    file: {
+                      attributes: {
+                        crossOrigin: "anonymous",
+                      },
+                    },
+                  }}
+                  style={{ position: "absolute", top: 0, left: 0 }}
+                />
+                
+                {/* Play overlay (click to play/pause) */}
+                {!isPlaying && (
+                  <div 
+                    className="absolute inset-0 flex items-center justify-center cursor-pointer bg-black/20"
+                    onClick={() => setIsPlaying(true)}
                   >
-                    {isPlaying ? <Pause className="w-8 h-8" /> : <Play className="w-8 h-8" />}
-                  </Button>
-                </div>
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
-                  <div className="flex items-center gap-4">
-                    <div className="flex-1 h-1 bg-white/30 rounded-full">
-                      <div className="w-1/3 h-full bg-mayza-cyan rounded-full" />
+                    <div className="rounded-full w-16 h-16 bg-white/20 backdrop-blur-sm hover:bg-white/30 flex items-center justify-center transition-all">
+                      <Play className="w-8 h-8 text-white ml-1" />
                     </div>
-                    <span className="text-xs text-white">0:00 / 0:30</span>
+                  </div>
+                )}
+
+                {/* Click to pause when playing */}
+                {isPlaying && (
+                  <div 
+                    className="absolute inset-0 cursor-pointer"
+                    onClick={() => setIsPlaying(false)}
+                  />
+                )}
+              </div>
+
+              {/* Transport Controls */}
+              <div className="bg-muted/30 rounded-xl p-4 space-y-3">
+                {/* Seek Bar */}
+                <Slider
+                  value={[played * 100]}
+                  onValueChange={handleSeek}
+                  max={100}
+                  step={0.1}
+                  className="cursor-pointer"
+                />
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setIsPlaying(!isPlaying)}
+                      className="h-8 w-8"
+                    >
+                      {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleRestart}
+                      className="h-8 w-8"
+                    >
+                      <SkipBack className="w-4 h-4" />
+                    </Button>
+                    <span className="text-xs text-muted-foreground font-mono">
+                      {formatTime(played * videoDuration)} / {formatTime(videoDuration)}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setIsMuted(!isMuted)}
+                      className="h-8 w-8"
+                    >
+                      {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                    </Button>
+                    <div className="w-20">
+                      <Slider
+                        value={isMuted ? [0] : volume}
+                        onValueChange={(v) => { setVolume(v); setIsMuted(false); }}
+                        max={100}
+                        step={5}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
               
+              {/* Video Stats */}
               <div className="grid grid-cols-3 gap-4 text-center">
                 <div className="bg-muted/30 rounded-lg p-3">
-                  <p className="text-2xl font-bold text-mayza-cyan">{qualityPresets.find(q => q.id === quality)?.resolution}</p>
+                  <p className="text-2xl font-bold text-primary">
+                    {generatedVideo?.resolution || qualityPresets.find(q => q.id === quality)?.resolution}
+                  </p>
                   <p className="text-xs text-muted-foreground">Resolution</p>
                 </div>
                 <div className="bg-muted/30 rounded-lg p-3">
-                  <p className="text-2xl font-bold text-mayza-purple">{qualityPresets.find(q => q.id === quality)?.fps}</p>
+                  <p className="text-2xl font-bold text-secondary-foreground">
+                    {generatedVideo?.fps || qualityPresets.find(q => q.id === quality)?.fps}
+                  </p>
                   <p className="text-xs text-muted-foreground">FPS</p>
                 </div>
                 <div className="bg-muted/30 rounded-lg p-3">
-                  <p className="text-2xl font-bold text-mayza-gold">30s</p>
+                  <p className="text-2xl font-bold text-accent-foreground">
+                    {videoDuration > 0 ? formatTime(videoDuration) : "—"}
+                  </p>
                   <p className="text-xs text-muted-foreground">Duration</p>
                 </div>
               </div>
